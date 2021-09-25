@@ -1,5 +1,7 @@
 package javaD.network;
 
+import javax.imageio.stream.FileImageOutputStream;
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -15,7 +17,49 @@ import java.net.URLConnection;
 //通过url直接登录
 public class upload {
     public static void main(String[] args) throws Exception {
-        postData2();
+        postFile();
+    }
+
+    //post 上传文件
+    public  static void postFile() throws Exception{
+        URL url = new URL("http://localhost/upload.php");
+
+        HttpURLConnection conn= (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-type","multipart/form-data,boundary=AaB03x");
+
+        //发送请求体数据
+        OutputStream os=conn.getOutputStream();
+        DataOutputStream out =new DataOutputStream(os);
+
+        //开头
+        out.writeBytes("--AaB03x\r\n");
+        out.writeBytes("content-disposition: form-data; name=\"file\"; filename=\"1.png\"\r\n");
+        out.writeBytes("Content-Type: image/png\r\n\r\n");
+
+        //图片的具体内容
+        //创建文件的输入流对象
+        FileInputStream fis=new FileInputStream("C:\\Users\\Administrator\\Desktop\\1.png");
+        BufferedInputStream bis=new BufferedInputStream(fis);
+        byte[] buffer =new byte[1024];
+        int len =0;
+        while ((len=bis.read(buffer))!=-1){
+            out.write(buffer,0,len);
+        }
+        out.writeBytes("\r\n");
+        //结尾   结尾前面也有换行---->\r\n
+        out.writeBytes("--AaB03x--\r\n");
+
+        out.flush();
+        out.close();
+        bis.close();
+
+        InputStream is = conn.getInputStream();
+        DataInputStream in=new DataInputStream(is);
+        len=in.read(buffer);
+        String content = new String(buffer,0,len);
+        System.out.println(content);
     }
 
     //post 底层方式提交普通数据
